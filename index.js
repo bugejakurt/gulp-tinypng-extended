@@ -56,15 +56,14 @@ function TinyPNG(opt, obj) {
 
         opt = util._extend(this.conf.options, opt);
 
-        if(!opt.key) throw new PluginError(PLUGIN_NAME, 'Missing API key!');
-
         if(!opt.force) opt.force = gutil.env.force || false; // force match glob
         if(!opt.ignore) opt.ignore = gutil.env.ignore || false; // ignore match glob
         if(opt.summarise) opt.summarize = true; // chin chin, old chap!
 
         this.conf.options = opt; // export opts
 
-        this.conf.token = new Buffer('api:' + opt.key).toString('base64'); // prep key
+        if(opt.key)
+            this.conf.token = new Buffer('api:' + opt.key).toString('base64'); // prep key
         this.hash = new this.hasher(opt.sigFile).populate(); // init hasher class
 
         return this;
@@ -187,12 +186,18 @@ function TinyPNG(opt, obj) {
                 }
 
                 request.post({
-                    url: 'https://api.tinify.com/shrink',
+                    url: 'https://tinypng.com/web/shrink',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + self.conf.token
+                        'Accept' : '*/*',
+                        'Accept-Encoding' : 'gzip, deflate',
+                        'Accept-Language' : 'zh-CN,zh;q=0.9,en;q=0.8',
+                        'Cache-Control' : 'no-cache',
+                        'Pragma' : 'no-cache',
+                        'Connection'  : 'keep-alive',
+                        'Host' : 'tinypng.com',
+                        'Referer' : 'https://tinypng.com/',
+                        'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
                     },
-                    strictSSL: false,
                     body: file.contents,
                     maxAttempts: self.conf.retryAttempts,
                     retryDelay: self.conf.retryDelay,
